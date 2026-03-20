@@ -1,0 +1,965 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Hydroficient SOC — Grand Marina</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@300;400;500&family=Outfit:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet" />
+ 
+  <style>
+    /* ── Reset ────────────────────────────────────────────── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+ 
+    :root {
+      /* Background orbs */
+      --orb-a: #c850c0;   /* vivid magenta */
+      --orb-b: #4158d0;   /* deep indigo */
+      --orb-c: #ff6b9d;   /* hot pink */
+      --orb-d: #7b2ff7;   /* electric violet */
+      --orb-e: #0093e9;   /* sky */
+ 
+      /* Glass tokens */
+      --glass-bg:     rgba(255,255,255,0.10);
+      --glass-bg-2:   rgba(255,255,255,0.15);
+      --glass-bg-3:   rgba(255,255,255,0.06);
+      --glass-border: rgba(255,255,255,0.22);
+      --glass-border-2: rgba(255,255,255,0.32);
+      --glass-shadow: 0 8px 32px rgba(0,0,0,0.22);
+      --glass-shadow-lg: 0 16px 64px rgba(0,0,0,0.28);
+      --blur: 18px;
+      --blur-lg: 28px;
+ 
+      /* Text */
+      --text:      #ffffff;
+      --text-soft: rgba(255,255,255,0.72);
+      --text-dim:  rgba(255,255,255,0.44);
+ 
+      /* Status colors */
+      --green:      #4ade80;
+      --green-glow: rgba(74,222,128,0.25);
+      --red:        #fb7185;
+      --red-glow:   rgba(251,113,133,0.25);
+      --amber:      #fbbf24;
+      --blue:       #93c5fd;
+ 
+      /* Shape */
+      --r-xl: 24px;
+      --r-lg: 18px;
+      --r-md: 12px;
+ 
+      /* Typography */
+      --font: 'Outfit', sans-serif;
+      --mono: 'DM Mono', monospace;
+    }
+ 
+    html, body {
+      min-height: 100%;
+      font-family: var(--font);
+      color: var(--text);
+      -webkit-font-smoothing: antialiased;
+      overflow-x: hidden;
+    }
+ 
+    /* ── Mesh gradient background ─────────────────────────── */
+    body {
+      background-color: #1a0533;
+      background-image:
+        radial-gradient(ellipse 70% 60% at 15%  20%, rgba(200,80,192,0.60), transparent),
+        radial-gradient(ellipse 55% 50% at 85%  10%, rgba(65,88,208,0.65), transparent),
+        radial-gradient(ellipse 60% 55% at 70%  80%, rgba(123,47,247,0.55), transparent),
+        radial-gradient(ellipse 45% 45% at 10%  75%, rgba(255,107,157,0.45), transparent),
+        radial-gradient(ellipse 50% 40% at 50%  50%, rgba(0,147,233,0.20), transparent);
+      background-attachment: fixed;
+    }
+ 
+    /* Subtle animated noise overlay for depth */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+      pointer-events: none;
+      z-index: 0;
+      opacity: 0.55;
+    }
+ 
+    /* ── App shell ────────────────────────────────────────── */
+    .app {
+      position: relative;
+      z-index: 1;
+      max-width: 1420px;
+      margin: 0 auto;
+      padding: 28px 28px 60px;
+      display: grid;
+      gap: 16px;
+    }
+ 
+    /* ── Glass mixin ──────────────────────────────────────── */
+    .glass {
+      background: var(--glass-bg);
+      border: 1px solid var(--glass-border);
+      backdrop-filter: blur(var(--blur)) saturate(180%);
+      -webkit-backdrop-filter: blur(var(--blur)) saturate(180%);
+      box-shadow: var(--glass-shadow);
+    }
+ 
+    /* Inset highlight line at top of each glass panel */
+    .glass::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 1px;
+      background: linear-gradient(90deg,
+        transparent 0%,
+        rgba(255,255,255,0.35) 30%,
+        rgba(255,255,255,0.55) 50%,
+        rgba(255,255,255,0.35) 70%,
+        transparent 100%);
+      border-radius: inherit;
+      pointer-events: none;
+    }
+ 
+    /* ── Header ───────────────────────────────────────────── */
+    .header {
+      position: relative;
+      border-radius: var(--r-xl);
+      padding: 18px 28px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 20px;
+      overflow: hidden;
+    }
+ 
+    .header-left { display: flex; align-items: center; gap: 16px; }
+ 
+    .logo {
+      width: 46px; height: 46px;
+      border-radius: 14px;
+      display: grid; place-items: center;
+      font-size: 22px; flex-shrink: 0;
+      background: rgba(255,255,255,0.18);
+      border: 1px solid rgba(255,255,255,0.30);
+      box-shadow: 0 4px 16px rgba(0,0,0,0.18), inset 0 1px 0 rgba(255,255,255,0.3);
+    }
+ 
+    .header-title {
+      font-size: 1.02rem; font-weight: 700;
+      letter-spacing: -0.02em; color: var(--text);
+    }
+    .header-sub {
+      font-size: 0.71rem; color: var(--text-dim);
+      font-family: var(--mono); margin-top: 2px;
+      letter-spacing: 0.03em;
+    }
+    .header-right { display: flex; align-items: center; gap: 14px; }
+ 
+    .live-pill {
+      display: flex; align-items: center; gap: 7px;
+      padding: 7px 15px; border-radius: 999px;
+      background: rgba(255,255,255,0.12);
+      border: 1px solid rgba(255,255,255,0.22);
+      font-size: 0.74rem; font-weight: 600;
+      font-family: var(--mono); color: var(--green);
+      letter-spacing: 0.06em;
+      transition: color 0.3s;
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.12);
+    }
+    .live-pill.disconnected { color: var(--red); }
+    .live-dot {
+      width: 7px; height: 7px; border-radius: 50%;
+      background: currentColor;
+      box-shadow: 0 0 8px currentColor;
+      animation: blink 2s ease-in-out infinite;
+    }
+    .live-pill.disconnected .live-dot { animation: none; }
+    .clock {
+      font-family: var(--mono); font-size: 0.88rem;
+      color: var(--text-dim); letter-spacing: 0.08em;
+      font-variant-numeric: tabular-nums;
+    }
+ 
+    /* ── Analyst bar ──────────────────────────────────────── */
+    .analyst-bar {
+      position: relative;
+      border-radius: var(--r-xl);
+      padding: 16px 26px;
+      display: flex; align-items: center; gap: 14px;
+      overflow: hidden;
+    }
+    .analyst-avatar {
+      width: 40px; height: 40px; border-radius: 12px;
+      background: rgba(255,255,255,0.15);
+      border: 1px solid rgba(255,255,255,0.24);
+      display: grid; place-items: center;
+      font-size: 18px; flex-shrink: 0;
+    }
+    .analyst-name  { font-size: 0.9rem; font-weight: 600; color: var(--text); }
+    .analyst-role  { font-size: 0.69rem; color: var(--text-dim); font-family: var(--mono); margin-top: 2px; }
+    .sep { width: 1px; height: 32px; background: rgba(255,255,255,0.15); margin: 0 6px; }
+    .analyst-desc  { font-size: 0.82rem; color: var(--text-soft); line-height: 1.55; }
+    .analyst-desc strong { color: var(--text); font-weight: 600; }
+ 
+    /* ── Stat row ─────────────────────────────────────────── */
+    .stat-row {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 16px;
+    }
+ 
+    .stat-card {
+      position: relative;
+      border-radius: var(--r-xl);
+      padding: 26px 26px 22px;
+      overflow: hidden;
+      transition: transform 0.2s;
+    }
+    .stat-card:hover { transform: translateY(-2px); }
+ 
+    /* Glowing bottom accent per card */
+    .stat-card::after {
+      content: '';
+      position: absolute;
+      bottom: 0; left: 20%; right: 20%; height: 1px;
+      opacity: 0.6;
+    }
+    .stat-card.s-green::after { background: var(--green); box-shadow: 0 0 12px var(--green); }
+    .stat-card.s-red::after   { background: var(--red);   box-shadow: 0 0 12px var(--red); }
+    .stat-card.s-blue::after  { background: var(--blue);  box-shadow: 0 0 12px var(--blue); }
+ 
+    .stat-eyebrow {
+      font-family: var(--mono); font-size: 0.69rem;
+      letter-spacing: 0.1em; text-transform: uppercase;
+      margin-bottom: 12px;
+    }
+    .stat-card.s-green .stat-eyebrow { color: var(--green); }
+    .stat-card.s-red   .stat-eyebrow { color: var(--red); }
+    .stat-card.s-blue  .stat-eyebrow { color: var(--blue); }
+ 
+    .stat-num {
+      font-size: clamp(3rem, 4.5vw, 5.2rem);
+      font-weight: 800; letter-spacing: -0.07em; line-height: 0.9;
+      font-variant-numeric: tabular-nums; color: var(--text);
+    }
+    .stat-desc { font-size: 0.79rem; color: var(--text-dim); margin-top: 10px; }
+ 
+    /* Glow orb behind number */
+    .stat-glow {
+      position: absolute;
+      bottom: -30px; right: -30px;
+      width: 120px; height: 120px;
+      border-radius: 50%;
+      filter: blur(50px);
+      opacity: 0.18; pointer-events: none;
+    }
+    .stat-card.s-green .stat-glow { background: var(--green); }
+    .stat-card.s-red   .stat-glow { background: var(--red); }
+    .stat-card.s-blue  .stat-glow { background: var(--blue); }
+ 
+    /* ── Zone grid ────────────────────────────────────────── */
+    .zone-grid {
+      display: grid;
+      grid-template-columns: 1.1fr 1fr 1fr;
+      gap: 16px;
+    }
+ 
+    .zone-card {
+      position: relative;
+      border-radius: var(--r-xl);
+      padding: 24px;
+      overflow: hidden;
+      transition: transform 0.25s, border-color 0.4s, box-shadow 0.4s;
+    }
+    .zone-card:hover { transform: translateY(-3px); }
+ 
+    /* Status top bar — grey offline, green online, red on attack */
+    .zone-card::after {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 3px;
+      background: rgba(255,255,255,0.14);
+      transition: background 0.4s, box-shadow 0.4s;
+      border-radius: var(--r-xl) var(--r-xl) 0 0;
+    }
+    .zone-card.online::after {
+      background: var(--green);
+      box-shadow: 0 0 16px var(--green-glow);
+    }
+    .zone-card.shaking::after {
+      background: var(--red);
+      box-shadow: 0 0 16px var(--red-glow);
+    }
+ 
+    .zone-head {
+      display: flex; align-items: flex-start;
+      justify-content: space-between; margin-bottom: 24px;
+    }
+    .zone-icon-row { display: flex; align-items: center; gap: 12px; }
+    .zone-icon {
+      width: 40px; height: 40px; border-radius: 12px;
+      display: grid; place-items: center; font-size: 19px;
+      background: rgba(255,255,255,0.12);
+      border: 1px solid rgba(255,255,255,0.18);
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.18);
+      flex-shrink: 0;
+    }
+    .zone-name  { font-size: 0.96rem; font-weight: 700; letter-spacing: -0.02em; color: var(--text); }
+    .zone-topic { font-size: 0.65rem; color: var(--text-dim); font-family: var(--mono); margin-top: 3px; }
+ 
+    .status-pill {
+      display: flex; align-items: center; gap: 5px;
+      padding: 5px 11px; border-radius: 999px;
+      background: rgba(255,255,255,0.08);
+      border: 1px solid rgba(255,255,255,0.14);
+      font-size: 0.69rem; font-weight: 600;
+      font-family: var(--mono); color: var(--text-dim);
+      transition: all 0.35s; white-space: nowrap;
+    }
+    .status-pill.online {
+      color: var(--green);
+      background: rgba(74,222,128,0.10);
+      border-color: rgba(74,222,128,0.25);
+    }
+    .pill-dot { width: 5px; height: 5px; border-radius: 50%; background: currentColor; }
+    .status-pill.online .pill-dot { box-shadow: 0 0 6px currentColor; animation: blink 2s ease-in-out infinite; }
+ 
+    /* Metrics */
+    .metrics { display: grid; gap: 16px; }
+    .metric  { display: grid; gap: 7px; }
+    .metric-head { display: flex; justify-content: space-between; align-items: baseline; }
+    .metric-label {
+      font-family: var(--mono); font-size: 0.67rem;
+      text-transform: uppercase; letter-spacing: 0.08em;
+      color: var(--text-dim);
+    }
+    .metric-val {
+      font-size: 1.55rem; font-weight: 700;
+      letter-spacing: -0.05em; color: var(--text);
+      font-variant-numeric: tabular-nums;
+      transition: color 0.3s;
+    }
+    .track {
+      height: 3px;
+      background: rgba(255,255,255,0.08);
+      border-radius: 999px; overflow: hidden;
+    }
+    .fill {
+      height: 100%; width: 0; border-radius: 999px;
+      background: linear-gradient(90deg, rgba(255,255,255,0.4), rgba(255,255,255,0.85));
+      box-shadow: 0 0 8px rgba(255,255,255,0.25);
+      transition: width 600ms cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+ 
+    /* ── Bottom row ───────────────────────────────────────── */
+    .bottom-row {
+      display: grid;
+      grid-template-columns: 1fr 1.08fr;
+      gap: 16px;
+    }
+ 
+    /* ── Status panel ─────────────────────────────────────── */
+    .status-panel {
+      position: relative;
+      border-radius: var(--r-xl);
+      padding: 26px;
+      overflow: hidden;
+      transition: border-color 0.4s;
+    }
+ 
+    .panel-eyebrow {
+      font-family: var(--mono); font-size: 0.69rem;
+      letter-spacing: 0.1em; text-transform: uppercase;
+      color: var(--text-dim); margin-bottom: 20px;
+    }
+ 
+    .state-row {
+      display: flex; align-items: flex-start;
+      gap: 14px; margin-bottom: 22px;
+    }
+    .state-icon {
+      width: 50px; height: 50px; border-radius: 16px;
+      display: grid; place-items: center; font-size: 24px;
+      flex-shrink: 0;
+      background: rgba(74,222,128,0.12);
+      border: 1px solid rgba(74,222,128,0.25);
+      transition: background 0.3s, border-color 0.3s;
+    }
+    .status-panel.alert .state-icon {
+      background: rgba(251,113,133,0.12);
+      border-color: rgba(251,113,133,0.25);
+    }
+    .state-heading {
+      font-size: 1.3rem; font-weight: 700;
+      letter-spacing: -0.04em; line-height: 1.1;
+      color: var(--green); transition: color 0.3s;
+    }
+    .status-panel.alert .state-heading { color: var(--red); }
+    .state-sub { font-size: 0.8rem; color: var(--text-dim); margin-top: 4px; }
+ 
+    /* Defense chips */
+    .chips { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 20px; }
+    .chip {
+      display: flex; align-items: center; gap: 6px;
+      padding: 6px 12px; border-radius: 999px;
+      font-size: 0.71rem; font-family: var(--mono);
+      background: rgba(255,255,255,0.08);
+      border: 1px solid rgba(255,255,255,0.14);
+      color: var(--text-soft);
+    }
+    .chip-dot {
+      width: 4px; height: 4px; border-radius: 50%;
+      background: var(--green); box-shadow: 0 0 5px var(--green);
+    }
+ 
+    /* Attack detail box */
+    .attack-box {
+      display: none;
+      margin-bottom: 16px;
+      padding: 16px 18px; border-radius: var(--r-lg);
+      background: rgba(251,113,133,0.08);
+      border: 1px solid rgba(251,113,133,0.22);
+    }
+    .attack-box.visible { display: block; }
+    .attack-title {
+      font-family: var(--mono); font-size: 0.69rem;
+      text-transform: uppercase; letter-spacing: 0.08em;
+      color: var(--red); margin-bottom: 12px;
+    }
+    .attack-rows { display: grid; gap: 6px; }
+    .attack-row  { display: flex; gap: 10px; font-size: 0.82rem; }
+    .akey { font-family: var(--mono); color: var(--text-dim); width: 58px; flex-shrink: 0; font-size: 0.71rem; }
+    .aval { color: var(--text-soft); }
+    .blocked-badge {
+      display: inline-flex; align-items: center; gap: 6px;
+      margin-top: 14px; padding: 6px 13px; border-radius: 999px;
+      background: rgba(74,222,128,0.10);
+      border: 1px solid rgba(74,222,128,0.25);
+      font-size: 0.71rem; font-family: var(--mono); color: var(--green);
+    }
+    .last-check {
+      font-size: 0.69rem; color: var(--text-dim);
+      font-family: var(--mono);
+    }
+ 
+    /* ── Log panel ────────────────────────────────────────── */
+    .log-panel {
+      position: relative;
+      border-radius: var(--r-xl);
+      padding: 26px;
+      overflow: hidden;
+    }
+ 
+    .log-scroll {
+      max-height: 320px; overflow-y: auto;
+      display: grid; gap: 8px; padding-right: 4px;
+    }
+    .log-scroll::-webkit-scrollbar { width: 3px; }
+    .log-scroll::-webkit-scrollbar-track { background: transparent; }
+    .log-scroll::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.14); border-radius: 999px; }
+ 
+    .log-entry {
+      display: grid; grid-template-columns: auto auto 1fr;
+      align-items: start; gap: 10px;
+      padding: 10px 13px; border-radius: var(--r-md);
+      background: rgba(255,255,255,0.06);
+      border: 1px solid rgba(255,255,255,0.10);
+      animation: fadein 220ms ease;
+    }
+    .log-entry.valid   { border-color: rgba(74,222,128,0.14); }
+    .log-entry.blocked { border-color: rgba(251,113,133,0.14); }
+ 
+    .log-icon {
+      width: 20px; height: 20px; border-radius: 6px;
+      display: grid; place-items: center; font-size: 0.65rem;
+    }
+    .log-entry.valid   .log-icon { background: rgba(74,222,128,0.14); color: var(--green); }
+    .log-entry.blocked .log-icon { background: rgba(251,113,133,0.14); color: var(--red); }
+    .log-ts {
+      font-family: var(--mono); font-size: 0.67rem;
+      color: var(--text-dim); white-space: nowrap; padding-top: 2px;
+    }
+    .log-msg { font-size: 0.79rem; color: var(--text-soft); line-height: 1.4; }
+    .log-msg strong { font-weight: 600; }
+    .log-entry.valid   .log-msg strong { color: var(--green); }
+    .log-entry.blocked .log-msg strong { color: var(--red); }
+    .log-empty {
+      padding: 28px 0; text-align: center;
+      color: var(--text-dim); font-size: 0.8rem; font-family: var(--mono);
+    }
+ 
+    /* ── Animations ───────────────────────────────────────── */
+    @keyframes blink {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50%       { opacity: 0.45; transform: scale(1.5); }
+    }
+    @keyframes fadein {
+      from { opacity: 0; transform: translateY(-6px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes shake {
+      0%,100% { transform: translateX(0); }
+      18%     { transform: translateX(-7px); }
+      36%     { transform: translateX(7px); }
+      54%     { transform: translateX(-4px); }
+      72%     { transform: translateX(4px); }
+    }
+    .zone-card.shaking { animation: shake 430ms ease; }
+ 
+    @keyframes numtick {
+      from { opacity: 0; transform: translateY(6px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    .numtick { animation: numtick 200ms ease; }
+ 
+    /* ── Responsive ───────────────────────────────────────── */
+    @media (max-width: 1100px) {
+      .zone-grid  { grid-template-columns: 1fr 1fr; }
+      .bottom-row { grid-template-columns: 1fr; }
+    }
+    @media (max-width: 680px) {
+      .app        { padding: 12px 12px 40px; }
+      .zone-grid  { grid-template-columns: 1fr; }
+      .stat-row   { grid-template-columns: 1fr; }
+      .header     { flex-wrap: wrap; }
+      .sep        { display: none; }
+      .analyst-desc { display: none; }
+    }
+  </style>
+</head>
+<body>
+<div class="app">
+ 
+  <!-- ── Header ─────────────────────────────────────────── -->
+  <header class="glass header">
+    <div class="header-left">
+      <div class="logo">💧</div>
+      <div>
+        <div class="header-title">Hydroficient Security Operations Center</div>
+        <div class="header-sub">Grand Marina Hotel · IoT Water Infrastructure · mTLS + HMAC Pipeline</div>
+      </div>
+    </div>
+    <div class="header-right">
+      <div id="livePill" class="live-pill">
+        <span class="live-dot"></span>
+        <span id="liveText">LIVE</span>
+      </div>
+      <div id="clock" class="clock">--:--:--</div>
+    </div>
+  </header>
+ 
+  <!-- ── Analyst bar ────────────────────────────────────── -->
+  <div class="glass analyst-bar">
+    <div class="analyst-avatar">✦</div>
+    <div>
+      <div class="analyst-name">Sam Sprague</div>
+      <div class="analyst-role">Security Analyst · Hydroficient IoT Cyber Defense Externship</div>
+    </div>
+    <div class="sep"></div>
+    <div class="analyst-desc">
+      Monitoring live <strong>MQTT telemetry</strong> across 3 water zones with
+      <strong>HMAC-SHA256</strong>, timestamp freshness, and sequence-counter replay protection active.
+    </div>
+  </div>
+ 
+  <!-- ── Stats ──────────────────────────────────────────── -->
+  <div class="stat-row">
+    <div class="glass stat-card s-green">
+      <div class="stat-eyebrow">Valid Messages</div>
+      <div id="validCount" class="stat-num">0</div>
+      <div class="stat-desc">Authenticated &amp; accepted by pipeline</div>
+      <div class="stat-glow"></div>
+    </div>
+    <div class="glass stat-card s-red">
+      <div class="stat-eyebrow">Attacks Blocked</div>
+      <div id="blockedCount" class="stat-num">0</div>
+      <div class="stat-desc">Injection, replay &amp; tampering attempts</div>
+      <div class="stat-glow"></div>
+    </div>
+    <div class="glass stat-card s-blue">
+      <div class="stat-eyebrow">Total Processed</div>
+      <div id="totalCount" class="stat-num">0</div>
+      <div class="stat-desc">All messages received by subscriber</div>
+      <div class="stat-glow"></div>
+    </div>
+  </div>
+ 
+  <!-- ── Zone cards ─────────────────────────────────────── -->
+  <div class="zone-grid">
+ 
+    <div id="zone-main" class="glass zone-card">
+      <div class="zone-head">
+        <div class="zone-icon-row">
+          <div class="zone-icon">🏢</div>
+          <div>
+            <div class="zone-name">Core Water System</div>
+            <div class="zone-topic">grandmarina/main/sensors</div>
+          </div>
+        </div>
+        <div id="main-pill" class="status-pill">
+          <div class="pill-dot"></div>Offline
+        </div>
+      </div>
+      <div class="metrics">
+        <div class="metric">
+          <div class="metric-head">
+            <span class="metric-label">Pressure</span>
+            <span id="main-pressure" class="metric-val">--</span>
+          </div>
+          <div class="track"><div id="main-p-bar" class="fill"></div></div>
+        </div>
+        <div class="metric">
+          <div class="metric-head">
+            <span class="metric-label">Flow Rate</span>
+            <span id="main-flow" class="metric-val">--</span>
+          </div>
+          <div class="track"><div id="main-f-bar" class="fill"></div></div>
+        </div>
+        <div class="metric">
+          <div class="metric-head">
+            <span class="metric-label">Gate Position</span>
+            <span id="main-gate" class="metric-val">--</span>
+          </div>
+          <div class="track"><div id="main-g-bar" class="fill"></div></div>
+        </div>
+      </div>
+    </div>
+ 
+    <div id="zone-pool" class="glass zone-card">
+      <div class="zone-head">
+        <div class="zone-icon-row">
+          <div class="zone-icon">🏊</div>
+          <div>
+            <div class="zone-name">Pool &amp; Spa</div>
+            <div class="zone-topic">grandmarina/pool/sensors</div>
+          </div>
+        </div>
+        <div id="pool-pill" class="status-pill">
+          <div class="pill-dot"></div>Offline
+        </div>
+      </div>
+      <div class="metrics">
+        <div class="metric">
+          <div class="metric-head">
+            <span class="metric-label">Pressure</span>
+            <span id="pool-pressure" class="metric-val">--</span>
+          </div>
+          <div class="track"><div id="pool-p-bar" class="fill"></div></div>
+        </div>
+        <div class="metric">
+          <div class="metric-head">
+            <span class="metric-label">Flow Rate</span>
+            <span id="pool-flow" class="metric-val">--</span>
+          </div>
+          <div class="track"><div id="pool-f-bar" class="fill"></div></div>
+        </div>
+        <div class="metric">
+          <div class="metric-head">
+            <span class="metric-label">Gate Position</span>
+            <span id="pool-gate" class="metric-val">--</span>
+          </div>
+          <div class="track"><div id="pool-g-bar" class="fill"></div></div>
+        </div>
+      </div>
+    </div>
+ 
+    <div id="zone-kitchen" class="glass zone-card">
+      <div class="zone-head">
+        <div class="zone-icon-row">
+          <div class="zone-icon">🍽️</div>
+          <div>
+            <div class="zone-name">Kitchen &amp; Laundry</div>
+            <div class="zone-topic">grandmarina/kitchen/sensors</div>
+          </div>
+        </div>
+        <div id="kitchen-pill" class="status-pill">
+          <div class="pill-dot"></div>Offline
+        </div>
+      </div>
+      <div class="metrics">
+        <div class="metric">
+          <div class="metric-head">
+            <span class="metric-label">Pressure</span>
+            <span id="kitchen-pressure" class="metric-val">--</span>
+          </div>
+          <div class="track"><div id="kitchen-p-bar" class="fill"></div></div>
+        </div>
+        <div class="metric">
+          <div class="metric-head">
+            <span class="metric-label">Flow Rate</span>
+            <span id="kitchen-flow" class="metric-val">--</span>
+          </div>
+          <div class="track"><div id="kitchen-f-bar" class="fill"></div></div>
+        </div>
+        <div class="metric">
+          <div class="metric-head">
+            <span class="metric-label">Gate Position</span>
+            <span id="kitchen-gate" class="metric-val">--</span>
+          </div>
+          <div class="track"><div id="kitchen-g-bar" class="fill"></div></div>
+        </div>
+      </div>
+    </div>
+ 
+  </div>
+ 
+  <!-- ── Bottom row ─────────────────────────────────────── -->
+  <div class="bottom-row">
+ 
+    <div id="statusPanel" class="glass status-panel">
+      <div class="panel-eyebrow">System Status</div>
+      <div class="state-row">
+        <div id="stateIcon" class="state-icon">✓</div>
+        <div>
+          <div id="stateHeading" class="state-heading">All systems nominal</div>
+          <div id="stateSub" class="state-sub">HMAC + timestamp + sequence verification active</div>
+        </div>
+      </div>
+      <div class="chips">
+        <div class="chip"><span class="chip-dot"></span>HMAC-SHA256</div>
+        <div class="chip"><span class="chip-dot"></span>Timestamp Freshness</div>
+        <div class="chip"><span class="chip-dot"></span>Sequence Counter</div>
+        <div class="chip"><span class="chip-dot"></span>mTLS Certificates</div>
+      </div>
+      <div id="attackBox" class="attack-box">
+        <div class="attack-title">⛔ Attack detected &amp; blocked</div>
+        <div class="attack-rows">
+          <div class="attack-row">
+            <span class="akey">Type</span>
+            <span id="attackType" class="aval">--</span>
+          </div>
+          <div class="attack-row">
+            <span class="akey">Source</span>
+            <span id="attackSource" class="aval">--</span>
+          </div>
+          <div class="attack-row">
+            <span class="akey">Target</span>
+            <span class="aval">Water System — Grand Marina Hotel</span>
+          </div>
+        </div>
+        <div class="blocked-badge">✓ Neutralized by security pipeline</div>
+      </div>
+      <div id="lastCheck" class="last-check">Last check: --:--:--</div>
+    </div>
+ 
+    <div class="glass log-panel">
+      <div class="panel-eyebrow">Security Event Log</div>
+      <div id="logList" class="log-scroll">
+        <div class="log-empty">Waiting for events...</div>
+      </div>
+    </div>
+ 
+  </div>
+ 
+</div><!-- /app -->
+ 
+<script>
+  const WS_URL       = 'ws://localhost:8765';
+  const MAX_LOG      = 60;
+  const RECONNECT_MS = 1500;
+  const ALERT_TTL_MS = 9000;
+ 
+  const $  = id => document.getElementById(id);
+  const el = {
+    livePill:     $('livePill'),
+    liveText:     $('liveText'),
+    clock:        $('clock'),
+    validCount:   $('validCount'),
+    blockedCount: $('blockedCount'),
+    totalCount:   $('totalCount'),
+    statusPanel:  $('statusPanel'),
+    stateIcon:    $('stateIcon'),
+    stateHeading: $('stateHeading'),
+    stateSub:     $('stateSub'),
+    attackBox:    $('attackBox'),
+    attackType:   $('attackType'),
+    attackSource: $('attackSource'),
+    lastCheck:    $('lastCheck'),
+    logList:      $('logList'),
+    zones: {
+      main: {
+        card: $('zone-main'), pill: $('main-pill'),
+        pressure: $('main-pressure'), pBar: $('main-p-bar'),
+        flow: $('main-flow'),         fBar: $('main-f-bar'),
+        gate: $('main-gate'),         gBar: $('main-g-bar'),
+      },
+      pool: {
+        card: $('zone-pool'), pill: $('pool-pill'),
+        pressure: $('pool-pressure'), pBar: $('pool-p-bar'),
+        flow: $('pool-flow'),         fBar: $('pool-f-bar'),
+        gate: $('pool-gate'),         gBar: $('pool-g-bar'),
+      },
+      kitchen: {
+        card: $('zone-kitchen'), pill: $('kitchen-pill'),
+        pressure: $('kitchen-pressure'), pBar: $('kitchen-p-bar'),
+        flow: $('kitchen-flow'),         fBar: $('kitchen-f-bar'),
+        gate: $('kitchen-gate'),         gBar: $('kitchen-g-bar'),
+      },
+    }
+  };
+ 
+  const counts = { valid: 0, blocked: 0, total: 0 };
+  let alertTimer = null;
+ 
+  /* Clock */
+  function pad(n) { return String(n).padStart(2, '0'); }
+  function timeNow() {
+    const d = new Date();
+    return `${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
+  }
+  setInterval(() => { el.clock.textContent = timeNow(); }, 1000);
+  el.clock.textContent = timeNow();
+ 
+  /* Utils */
+  function num(v) { const n = Number(v); return Number.isFinite(n) ? n : null; }
+  function first(...vals) { for (const v of vals) if (v !== null && v !== undefined) return v; return null; }
+  function esc(s) { return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[c])); }
+  function f1(v) { return num(v) !== null ? Number(v).toFixed(1) : '--'; }
+  function f2(v) { return num(v) !== null ? Number(v).toFixed(2) : '--'; }
+ 
+  function setVal(node, text) {
+    if (!node) return;
+    node.textContent = text;
+    node.classList.remove('numtick');
+    void node.offsetWidth;
+    node.classList.add('numtick');
+  }
+ 
+  /* Zone routing */
+  function zoneFor(topic) {
+    const t = String(topic).toLowerCase();
+    if (t.includes('pool') || t.includes('spa'))        return 'pool';
+    if (t.includes('kitchen') || t.includes('laundry')) return 'kitchen';
+    return 'main';
+  }
+ 
+  /* Zone update */
+  function updateZone(key, data) {
+    const z = el.zones[key];
+    if (!z) return;
+    const pressure = first(num(data.pressure_psi), num(data.pressure_upstream), num(data.pressure));
+    const flow     = first(num(data.flow_rate_gpm), num(data.flow_rate), num(data.flow));
+    const gate     = first(num(data.valve_position), num(data.gate_a_position), num(data.gate_position), num(data.gate));
+ 
+    if (pressure !== null) { setVal(z.pressure, `${f1(pressure)} PSI`); z.pBar.style.width = `${Math.min(100,(pressure/120)*100)}%`; }
+    if (flow     !== null) { setVal(z.flow,     `${f1(flow)} LPM`);     z.fBar.style.width = `${Math.min(100,(flow/80)*100)}%`; }
+    if (gate     !== null) { setVal(z.gate,     `${f1(gate)}%`);        z.gBar.style.width = `${Math.min(100,gate)}%`; }
+ 
+    z.card.classList.add('online');
+    z.pill.classList.add('online');
+    z.pill.innerHTML = '<div class="pill-dot"></div>Online';
+  }
+ 
+  /* Stats */
+  function updateStats(d) {
+    const v = first(num(d.valid), num(d.valid_messages), num(d.accepted));
+    const b = first(num(d.blocked), num(d.attacks_blocked), num(d.rejected));
+    const t = first(num(d.total), num(d.total_processed));
+    if (v !== null) { counts.valid   = v; setVal(el.validCount,   v); }
+    if (b !== null) { counts.blocked = b; setVal(el.blockedCount, b); }
+    if (t !== null) { counts.total   = t; setVal(el.totalCount,   t); }
+    else { counts.total = counts.valid + counts.blocked; setVal(el.totalCount, counts.total); }
+  }
+ 
+  /* Status panel */
+  function setNormal() {
+    el.statusPanel.classList.remove('alert');
+    el.stateIcon.textContent    = '✓';
+    el.stateHeading.textContent = 'All systems nominal';
+    el.stateSub.textContent     = 'HMAC + timestamp + sequence verification active';
+    el.attackBox.classList.remove('visible');
+    el.lastCheck.textContent    = `Last check: ${timeNow()}`;
+  }
+  function setAlert(type, source) {
+    el.statusPanel.classList.add('alert');
+    el.stateIcon.textContent    = '⚠️';
+    el.stateHeading.textContent = 'Attack detected';
+    el.stateSub.textContent     = 'Blocked by security pipeline';
+    el.attackType.textContent   = type   || 'Unknown';
+    el.attackSource.textContent = source || 'Unknown';
+    el.attackBox.classList.add('visible');
+    el.lastCheck.textContent    = `Last check: ${timeNow()}`;
+    clearTimeout(alertTimer);
+    alertTimer = setTimeout(setNormal, ALERT_TTL_MS);
+  }
+ 
+  /* Log */
+  function addLog(kind, html) {
+    const empty = el.logList.querySelector('.log-empty');
+    if (empty) empty.remove();
+    const e = document.createElement('div');
+    e.className = `log-entry ${kind}`;
+    e.innerHTML = `<div class="log-icon">${kind==='blocked'?'⛔':'✓'}</div><div class="log-ts">${timeNow()}</div><div class="log-msg">${html}</div>`;
+    el.logList.prepend(e);
+    while (el.logList.children.length > MAX_LOG) el.logList.removeChild(el.logList.lastChild);
+  }
+ 
+  /* Shake */
+  function shake(key) {
+    const z = el.zones[key] || el.zones.main;
+    z.card.classList.remove('shaking');
+    void z.card.offsetWidth;
+    z.card.classList.add('shaking');
+    setTimeout(() => z.card.classList.remove('shaking'), 500);
+  }
+ 
+  /* Handlers */
+  function handleValid(data) {
+    const zone  = zoneFor(data.topic || data.source_topic || '');
+    updateZone(zone, data);
+    setNormal();
+    const label = { main:'Core Water', pool:'Pool & Spa', kitchen:'Kitchen' }[zone] || zone;
+    const p = f1(first(num(data.pressure_psi), num(data.pressure_upstream), num(data.pressure)));
+    const f = f2(first(num(data.flow_rate_gpm), num(data.flow_rate), num(data.flow)));
+    addLog('valid', `<strong>${label}</strong> &mdash; ${p} PSI &nbsp;·&nbsp; ${f} LPM`);
+  }
+  function handleBlocked(data) {
+    const type   = data.attack_type || data.reason || data.failed_check || 'Attack';
+    const source = data.source || data.device || data.device_id || 'Unknown';
+    const zone   = zoneFor(data.topic || data.source_topic || '');
+    setAlert(type, source);
+    shake(zone);
+    addLog('blocked', `<strong>${esc(type)}</strong> from ${esc(source)}`);
+  }
+ 
+  /* WebSocket */
+  let ws;
+  function connect() {
+    ws = new WebSocket(WS_URL);
+    ws.addEventListener('open', () => {
+      el.livePill.classList.remove('disconnected');
+      el.liveText.textContent = 'LIVE';
+    });
+    ws.addEventListener('close', () => {
+      el.livePill.classList.add('disconnected');
+      el.liveText.textContent = 'OFFLINE';
+      setTimeout(connect, RECONNECT_MS);
+    });
+    ws.addEventListener('error', () => {
+      el.livePill.classList.add('disconnected');
+      el.liveText.textContent = 'OFFLINE';
+    });
+    ws.addEventListener('message', event => {
+      let envelope;
+      try { envelope = JSON.parse(event.data); } catch { return; }
+ 
+      if (envelope.type === 'stats_update') { updateStats(envelope.data || {}); return; }
+ 
+      const payload = envelope.data ? { type: envelope.type, ...envelope.data } : envelope;
+      updateStats(payload);
+ 
+      const t = String(payload.type || '').toLowerCase();
+      if (t.includes('valid') || t.includes('accept')) {
+        handleValid(payload);
+      } else if (t.includes('attack') || t.includes('reject') || t.includes('block') || payload.attack_type || payload.failed_check) {
+        handleBlocked(payload);
+      }
+    });
+  }
+ 
+  connect();
+</script>
+</body>
+</html>
